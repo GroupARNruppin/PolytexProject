@@ -2,8 +2,7 @@ const express = require("express");
 const sql = require("mssql");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
-const Chart = require("chart.js");
-const { CanvasRenderService } = require("chartjs-node-canvas");
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 
 const app = express();
 const PORT = 3000;
@@ -121,7 +120,7 @@ function prepareChartData(data) {
           label: size, // Y-axis
           data: [],
           backgroundColor: getRandomColor(),
-          borderColor: getRandomColor(0.8),
+          width: 20,
           borderWidth: 1,
         };
       }
@@ -143,15 +142,34 @@ function getRandomColor(alpha = 1) {
 
 // Function to create a Chart.js graph
 function createGraph(data) {
-  const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
   const canvasRenderService = new ChartJSNodeCanvas({ width: 800, height: 600 });
   const configuration = {
     type: "bar",
     data: data,
     options: {
+      elements: {
+        bar: {
+          borderWidth: 5,
+        }
+      },  
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'right',
+        },
+        title: {
+          display: true,
+          text: 'Distribution Of Items & Size Across All Stations'
+        }
+      },
       scales: {
         x: {
           beginAtZero: true,
+        },
+        y: {
+          barPercentage: 50, 
+          categoryPercentage: 50, 
         },
       },
     },
