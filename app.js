@@ -45,9 +45,9 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
           IT.FullName,
           IST.FullName
     `;
+    const resultQuery = result.recordset
 
-
-    res.json(result.recordset);
+    res.json(resultQuery);
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
