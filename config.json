@@ -1,0 +1,10 @@
+ {
+  "user": "student_ron",
+  "password": "P@ssw0rd123!",
+  "server": "sql-pm8-qa.database.windows.net",
+  "database": "db-pm8-pmbrusting-qa", 
+  "options": {
+    "encrypt": true, 
+    "trustServerCertificate": false
+  }
+}
