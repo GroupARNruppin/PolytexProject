@@ -18,7 +18,7 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
     // Connect to the database
     await sql.connect(config);
 
-    // Update the SQL query to use parameters
+    // SQL query using parameters
     const result = await sql.query`
       SELECT
           AL.SiteId AS Hospital_Id,
