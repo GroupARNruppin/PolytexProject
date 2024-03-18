@@ -12,20 +12,18 @@ const configPath = "./config.json";
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
 // Define a route to fetch data from the database with parameters
-async function fetchDataBySiteIdAndAlertId(AccountID, SiteId, AlertId) {
-  app.get(
-    "/getPDFSuggestions/:AccountID/:SiteId/:AlertId",
-    async (req, res) => {
-      // Alert is 1360 (code: 0x0500)
-      try {
-        // Extract parameters from the request
-        const { AccountID, SiteId, AlertId } = req.params;
 
-        // Connect to the database
-        await sql.connect(config);
+app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
+  // Alert is 1360 (code: 0x0500)
+  try {
+    // Extract parameters from the request
+    const { AccountID, SiteId, AlertId } = req.params;
 
-        // SQL query using parameters
-        const result = await sql.query`
+    // Connect to the database
+    await sql.connect(config);
+
+    // SQL query using parameters
+    const result = await sql.query`
        SELECT
            AL.SiteId AS Hospital_Id,
            ST.Name AS Station_Name,
@@ -51,19 +49,17 @@ async function fetchDataBySiteIdAndAlertId(AccountID, SiteId, AlertId) {
            IT.FullName,
            IST.FullName
      `;
-        const resultQuery = result.recordset;
+    const resultQuery = result.recordset;
 
-        res.json(resultQuery);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
-      } finally {
-        // Close the database connection
-        await sql.close();
-      }
-    }
-  );
-}
+    res.json(resultQuery);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  } finally {
+    // Close the database connection
+    await sql.close();
+  }
+});
 
 async function CreateAndExportData() {
   const dataPath = "./data.json";
@@ -179,5 +175,4 @@ function createGraph(data) {
   console.log("Chart created and saved as chart.png");
 }
 
-fetchDataBySiteIdAndAlertId();
 CreateAndExportData();
