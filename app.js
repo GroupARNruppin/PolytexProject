@@ -12,80 +12,73 @@ const configPath = "./config.json";
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
 // Define a route to fetch data from the database with parameters
+app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
+  try {
+    const { AccountID, SiteId, AlertId } = req.params;
+    const data = await fetchDataBySiteIdAndAlertId(AccountID, SiteId, AlertId);
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Function to fetch data from the database
 async function fetchDataBySiteIdAndAlertId(AccountID, SiteId, AlertId) {
-  app.get(
-    "/getPDFSuggestions/:AccountID/:SiteId/:AlertId",
-    async (req, res) => {
-      // Alert is 1360 (code: 0x0500)
-      try {
-        // Extract parameters from the request
-        const { AccountID, SiteId, AlertId } = req.params;
-
-        // Connect to the database
-        await sql.connect(config);
-
-        // SQL query using parameters
-        const result = await sql.query`
-       SELECT
-           AL.SiteId AS Hospital_Id,
-           ST.Name AS Station_Name,
-           IT.FullName AS Item_name,
-           MAX(IST.FullName) AS Item_Size,
-           COUNT(*) AS Appearance_Count
-       FROM
-           AlertsLog AL
-       JOIN
-           Stations ST ON ST.Id = AL.SiteId
-       JOIN
-           ItemSubTypes IST ON IST.Id = AL.ItemSubTypeId
-       JOIN
-           ItemTypes IT ON IT.Id = IST.ItemTypeId
-       WHERE
-           AL.AlertId = ${AlertId}
-           AND AL.ItemSubTypeId IS NOT NULL
-           AND AL.AccountId = ${AccountID}
-           AND AL.SiteId = ${SiteId}
-       GROUP BY
-           AL.SiteId,
-           ST.Name,
-           IT.FullName,
-           IST.FullName
-     `;
-        const resultQuery = result.recordset;
-
-        res.json(resultQuery);
-      } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error");
-      } finally {
-        // Close the database connection
-        await sql.close();
-      }
-    }
-  );
+  try {
+    await sql.connect(config);
+    const result = await sql.query`
+      SELECT
+        AL.SiteId AS Hospital_Id,
+        ST.Name AS Station_Name,
+        IT.FullName AS Item_name,
+        MAX(IST.FullName) AS Item_Size,
+        COUNT(*) AS Appearance_Count
+      FROM
+        AlertsLog AL
+      JOIN
+        Stations ST ON ST.Id = AL.SiteId
+      JOIN
+        ItemSubTypes IST ON IST.Id = AL.ItemSubTypeId
+      JOIN
+        ItemTypes IT ON IT.Id = IST.ItemTypeId
+      WHERE
+        AL.AlertId = ${AlertId}
+        AND AL.ItemSubTypeId IS NOT NULL
+        AND AL.AccountId = ${AccountID}
+        AND AL.SiteId = ${SiteId}
+      GROUP BY
+        AL.SiteId,
+        ST.Name,
+        IT.FullName,
+        IST.FullName
+    `;
+    return result.recordset;
+  } catch (error) {
+    throw error;
+  } finally {
+    await sql.close();
+  }
 }
 
-async function CreateAndExportData() {
-  const dataPath = "./data.json";
-  const data = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
-
-  // Create the graph
-  const chartData = prepareChartData(data);
-  createGraph(chartData);
-
-  // Export the graph to PDF
-  await create_pdf.renderPDF();
+async function CreateAndExportData(AccountID, SiteId, AlertId) {
+  try {
+    const data = await fetchDataBySiteIdAndAlertId(AccountID, SiteId, AlertId);
+    const chartData = prepareChartData(data);
+    createGraph(chartData);
+    await create_pdf.renderPDF();
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 // Function to prepare Chart.js data
 function prepareChartData(data) {
-  // console.log('Original Data:', data);
   const chartData = {
     labels: [],
     datasets: [],
   };
 
-  // Group data by shirt name
   const groupedData = data.reduce((acc, item) => {
     const key = item.Item_name;
 
@@ -98,24 +91,20 @@ function prepareChartData(data) {
     return acc;
   }, {});
 
-  // Extract unique shirt names
   chartData.labels = Object.keys(groupedData);
 
-  // Create a dataset for each size within each shirt group
   chartData.labels.forEach((shirtName, index) => {
     const shirtData = groupedData[shirtName];
 
     const sizes = Array.from(new Set(shirtData.map((item) => item.Item_Size)));
 
     sizes.forEach((size, sizeIndex) => {
-      // Filter data for the current size
       const sizeData = shirtData.filter((item) => item.Item_Size === size);
-      // Map the appearances for the current size
       const appearances = sizeData.map((item) => item.Appearance_Count);
 
       if (!chartData.datasets[sizeIndex]) {
         chartData.datasets[sizeIndex] = {
-          label: size, // Y-axis
+          label: size,
           data: [],
           backgroundColor: getRandomColor(),
           width: 20,
@@ -126,7 +115,6 @@ function prepareChartData(data) {
       chartData.datasets[sizeIndex].data[index] = appearances[0] || 0;
     });
   });
-  // console.log('Updated Chart Data:', chartData);
 
   return chartData;
 }
@@ -179,5 +167,14 @@ function createGraph(data) {
   console.log("Chart created and saved as chart.png");
 }
 
-fetchDataBySiteIdAndAlertId();
-CreateAndExportData();
+// Call the CreateAndExportData function with actual parameters
+const AccountID = 123; // Replace with actual AccountID
+const SiteId = 456; // Replace with actual SiteId
+const AlertId = 789; // Replace with actual AlertId
+CreateAndExportData(AccountID, SiteId, AlertId);
+
+// Start the Express server
+const port = 3001;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
