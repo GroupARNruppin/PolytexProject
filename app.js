@@ -168,13 +168,7 @@ function createGraph(data) {
 }
 
 // Call the CreateAndExportData function with actual parameters
-const AccountID = 123; // Replace with actual AccountID
-const SiteId = 456; // Replace with actual SiteId
-const AlertId = 789; // Replace with actual AlertId
+const AccountID = 1; // Replace with actual AccountID
+const SiteId = 322; // Replace with actual SiteId
+const AlertId = 1360; // Replace with actual AlertId
 CreateAndExportData(AccountID, SiteId, AlertId);
-
-// Start the Express server
-const port = 3001;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
