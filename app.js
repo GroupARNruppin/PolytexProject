@@ -1,15 +1,19 @@
 const express = require("express");
 const sql = require("mssql");
 const fs = require("fs");
-const server_init = require("./server");
 const create_pdf = require("./create_pdf");
 
 const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
-server_init.server_init();
 const app = express();
 
 const configPath = "./config.json";
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+// Start the Express server
+const port = 3001;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
 // Define a route to fetch data from the database with parameters
 app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
@@ -172,9 +176,3 @@ const AccountID = 1; // Replace with actual AccountID
 const SiteId = 322; // Replace with actual SiteId
 const AlertId = 1360; // Replace with actual AlertId
 CreateAndExportData(AccountID, SiteId, AlertId);
-
-// Start the Express server
-// const port = 3001;
-// app.listen(port, () => {
-//   console.log(`Server is running on port ${port}`);
-// });
