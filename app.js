@@ -10,7 +10,7 @@ const PORT = 3000;
 const configPath = "./config.json";
 const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
-
+// http://localhost:3000/getPDFSuggestions/1/322/1360
 // Define a route to fetch data from the database with parameters
 app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
   // Alert is 1360 (code: 0x0500)
@@ -247,7 +247,7 @@ async function exportGraphToPDF() {
   console.log('PDF generated successfully at: chart.pdf');
 }
 
-CreateAndExportData()
+// CreateAndExportData()
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
