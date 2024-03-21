@@ -2,7 +2,7 @@ const express = require("express");
 const sql = require("mssql");
 const fs = require("fs");
 const puppeteer = require("puppeteer");
-const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const { ChartJSNodeCanvas } = require("chartjs-node-canvas");
 
 const app = express();
 const PORT = 3000;
@@ -67,17 +67,6 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
   }
 });
 
-async function CreateAndExportData() {
-  const dataPath = "./data.json";
-  const data = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
-
-  // Create the graph
-  const chartData = prepareChartData(data);
-  createGraph(chartData);
-
-  // Export the graph to PDF
-  await exportGraphToPDF();
-}
 
 // Function to prepare Chart.js data
 function prepareChartData(data) {
@@ -139,10 +128,12 @@ function getRandomColor(alpha = 1) {
   return `rgba(${randomColor()}, ${randomColor()}, ${randomColor()}, ${alpha})`;
 }
 
-
 // Function to create a Chart.js graph
 function createGraph(data) {
-  const canvasRenderService = new ChartJSNodeCanvas({ width: 800, height: 600 });
+  const canvasRenderService = new ChartJSNodeCanvas({
+    width: 800,
+    height: 600,
+  });
   const configuration = {
     type: "bar",
     data: data,
@@ -150,18 +141,18 @@ function createGraph(data) {
       elements: {
         bar: {
           borderWidth: 5,
-        }
+        },
       },
-      indexAxis: 'y',
+      indexAxis: "y",
       responsive: true,
       plugins: {
         legend: {
-          position: 'right',
+          position: "right",
         },
         title: {
           display: true,
-          text: 'Distribution Of Items & Size Across All Stations'
-        }
+          text: "Distribution Of Items & Size Across All Stations",
+        },
       },
       scales: {
         x: {
@@ -185,7 +176,7 @@ async function exportGraphToPDF() {
   const page = await browser.newPage();
 
   // Read the image file and convert it to a base64 data URL
-  const imageData = fs.readFileSync('chart.png', 'base64');
+  const imageData = fs.readFileSync("chart.png", "base64");
   const imageSrc = `data:image/png;base64,${imageData}`;
 
   // Set the HTML content for the PDF
@@ -236,18 +227,17 @@ async function exportGraphToPDF() {
     `;
 
   // Set the HTML content of the page
-  await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
+  await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
 
   // Generate PDF
-  await page.pdf({ path: 'chart.pdf', format: 'A4' });
+  await page.pdf({ path: "chart.pdf", format: "A4" });
 
   // Close the browser
   await browser.close();
 
-  console.log('PDF generated successfully at: chart.pdf');
+  console.log("PDF generated successfully at: chart.pdf");
 }
 
-// CreateAndExportData()
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
