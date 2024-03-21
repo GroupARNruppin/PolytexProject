@@ -136,27 +136,13 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
     tableHtml += `
         <tr>
           <td>${row.Department}</td>
-          <td style="background-color: rgba(255, 0, 0, ${row.Y / maxCount})">${
-      row.Y
-    }</td>
-          <td style="background-color: rgba(0, 255, 0, ${row.S / maxCount})">${
-      row.S
-    }</td>
-          <td style="background-color: rgba(0, 0, 255, ${row.M / maxCount})">${
-      row.M
-    }</td>
-          <td style="background-color: rgba(255, 255, 0, ${
-            row.L / maxCount
-          })">${row.L}</td>
-          <td style="background-color: rgba(255, 0, 255, ${
-            row.XL / maxCount
-          })">${row.XL}</td>
-          <td style="background-color: rgba(0, 255, 255, ${
-            row["2XL"] / maxCount
-          })">${row["2XL"]}</td>
-          <td style="background-color: rgba(128, 128, 128, ${
-            row["3XL"] / maxCount
-          })">${row["3XL"]}</td>
+          <td class="heatmap-y">${row.Y}</td>
+          <td class="heatmap-s">${row.S}</td>
+          <td class="heatmap-m">${row.M}</td>
+          <td class="heatmap-l">${row.L}</td>
+          <td class="heatmap-xl">${row.XL}</td>
+          <td class="heatmap-2xl">${row["2XL"]}</td>
+          <td class="heatmap-3xl">${row["3XL"]}</td>
           <td>${row.Sum}</td>
         </tr>
       `;
@@ -213,33 +199,33 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
             background-color: #f2f2f2;
           }
   
-          /* Define heatmap colors based on RGBA values */
+          /* Define heatmap colors based on CSS classes */
           .heatmap-y {
-            background-color: rgba(255, 0, 0, 0.5);
+            background-color: rgba(255, 0, 0, 0.5); /* Red */
           }
   
           .heatmap-s {
-            background-color: rgba(0, 255, 0, 0.5);
+            background-color: rgba(0, 255, 0, 0.5); /* Green */
           }
   
           .heatmap-m {
-            background-color: rgba(0, 0, 255, 0.5);
+            background-color: rgba(0, 0, 255, 0.5); /* Blue */
           }
   
           .heatmap-l {
-            background-color: rgba(255, 255, 0, 0.5);
+            background-color: rgba(255, 255, 0, 0.5); /* Yellow */
           }
   
           .heatmap-xl {
-            background-color: rgba(255, 0, 255, 0.5);
+            background-color: rgba(255, 0, 255, 0.5); /* Magenta */
           }
   
           .heatmap-2xl {
-            background-color: rgba(0, 255, 255, 0.5);
+            background-color: rgba(0, 255, 255, 0.5); /* Cyan */
           }
   
           .heatmap-3xl {
-            background-color: rgba(128, 128, 128, 0.5);
+            background-color: rgba(128, 128, 128, 0.5); /* Gray */
           }
         </style>
       </head>
