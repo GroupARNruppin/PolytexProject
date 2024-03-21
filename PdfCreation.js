@@ -102,55 +102,15 @@ function createGraph(data) {
   console.log("Chart created and saved as chart.png");
 }
 
-async function exportGraphAndTableToPDF(tableData) {
+async function exportGraphAndTableToPDF() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
   // Read the image file and convert it to a base64 data URL
   const imageData = fs.readFileSync("chart.png", "base64");
   const imageSrc = `data:image/png;base64,${imageData}`;
-
-  // Generate the table HTML content with color scale
-  let tableHtml = `
-    <h2>Heatmap Table</h2>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>Department</th>
-          <th>Y</th>
-          <th>S</th>
-          <th>M</th>
-          <th>L</th>
-          <th>XL</th>
-          <th>2XL</th>
-          <th>3XL</th>
-          <th>Sum</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-
-  // Populate the table with data and apply color scale
-  tableData.forEach((row) => {
-    tableHtml += `
-        <tr>
-          <td>${row.Department}</td>
-          <td style="color: ${getColor(row.Y)}">${row.Y}</td>
-          <td style="color: ${getColor(row.S)}">${row.S}</td>
-          <td style="color: ${getColor(row.M)}">${row.M}</td>
-          <td style="color: ${getColor(row.L)}">${row.L}</td>
-          <td style="color: ${getColor(row.XL)}">${row.XL}</td>
-          <td style="color: ${getColor(row["2XL"])}">${row["2XL"]}</td>
-          <td style="color: ${getColor(row["3XL"])}">${row["3XL"]}</td>
-          <td>${row.Sum}</td>
-        </tr>
-      `;
-  });
-
-  tableHtml += `
-      </tbody>
-    </table>
-  `;
+  const imageTable = fs.readFileSync("table.png", "base64");
+  const imageTableSrc = `data:image/png;base64,${imageTable}`;
 
   // Set the HTML content for the PDF
   const htmlContent = `
@@ -207,10 +167,9 @@ async function exportGraphAndTableToPDF(tableData) {
           In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed. Through this report, Polytex hopes to help Hospital Name optimize their operations and improve patient outcomes.
         </span>
   
-        <h2>Graph</h2>
-        <img src="${imageSrc}" alt="Graph Image" />
+        <div style="height: 25%;"><img src="${imageSrc}" alt="Graph Image" /><div>
   
-        ${tableHtml}
+        <div style="height: 25%;"><img src="${imageTableSrc}"alt="Table Image" /></div>
       </body>
       </html>
       `;
@@ -227,14 +186,88 @@ async function exportGraphAndTableToPDF(tableData) {
   console.log("PDF generated successfully at: report.pdf");
 }
 
+// Function to generate the table HTML content with color scale
+async function generateTableHTML(tableData) {
+  let tableHtml = `
+          <h2 style="text-align: center;">Distribution Of Sizes Per Dispense Unit</h2>
+          <table border="1" style="width: 100%; border-collapse: collapse;">
+            <thead style="background-color: #f2f2f2;">
+              <tr>
+                <th style="padding: 8px; text-align: left;">Department</th>
+                <th style="padding: 8px; text-align: center;">Y</th>
+                <th style="padding: 8px; text-align: center;">S</th>
+                <th style="padding: 8px; text-align: center;">M</th>
+                <th style="padding: 8px; text-align: center;">L</th>
+                <th style="padding: 8px; text-align: center;">XL</th>
+                <th style="padding: 8px; text-align: center;">2XL</th>
+                <th style="padding: 8px; text-align: center;">3XL</th>
+                <th style="padding: 8px; text-align: center;">Sum</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+  // Populate the table with data and apply color scale
+  tableData.forEach((row) => {
+    tableHtml += `
+              <tr>
+                <td style="padding: 8px; text-align: left;">${
+                  row.Department
+                }</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row.Y
+                )}">${row.Y}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row.S
+                )}">${row.S}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row.M
+                )}">${row.M}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row.L
+                )}">${row.L}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row.XL
+                )}">${row.XL}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row["2XL"]
+                )}">${row["2XL"]}</td>
+                <td style="padding: 8px; text-align: center; color: ${getColor(
+                  row["3XL"]
+                )}">${row["3XL"]}</td>
+                <td style="padding: 8px; text-align: center;">${row.Sum}</td>
+              </tr>
+            `;
+  });
+
+  tableHtml += `
+            </tbody>
+          </table>
+        `;
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  // Set the HTML content for the page
+  await page.setContent(tableHtml, { waitUntil: "domcontentloaded" });
+
+  // Capture a screenshot of the table
+  await page.screenshot({ path: "table.png" });
+
+  // Close the browser
+  await browser.close();
+
+  console.log("Table image created and saved as table.png");
+}
+
 // Function to get color based on value for color scale
 function getColor(value) {
   if (value >= 0 && value <= 100) {
-    return "white";
-  } else if (value > 100 && value <= 300) {
-    return "lightyellow";
-  } else if (value > 300 && value <= 500) {
     return "yellow";
+  } else if (value > 100 && value <= 300) {
+    return "gray";
+  } else if (value > 300 && value <= 500) {
+    return "darkyellow";
   } else if (value > 500 && value <= 800) {
     return "lightorange";
   } else if (value > 800 && value <= 1100) {
@@ -335,6 +368,7 @@ function generateTableData(queryData) {
 }
 
 module.exports = {
+  generateTableHTML,
   getMaxCount,
   generateTableData,
   createGraph,

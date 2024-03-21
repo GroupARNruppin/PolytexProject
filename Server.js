@@ -1,6 +1,7 @@
 const express = require("express");
 const { startServer } = require("./DataBase");
 const {
+  generateTableHTML,
   getMaxCount,
   generateTableData,
   createGraph,
@@ -18,8 +19,9 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
     const chartData = await prepareChartData(resultQuery);
     await createGraph(chartData);
     const tableData = await generateTableData(resultQuery);
-    const maxCount = await getMaxCount(resultQuery);
-    await exportGraphAndTableToPDF(tableData);
+    //const maxCount = await getMaxCount(resultQuery);
+    await generateTableHTML(tableData);
+    await exportGraphAndTableToPDF();
     res.json(resultQuery);
   } catch (error) {
     console.error(error);
