@@ -102,8 +102,7 @@ function createGraph(data) {
   console.log("Chart created and saved as chart.png");
 }
 
-// Function to export the graph and table to PDF using Puppeteer
-async function exportGraphAndTableToPDF(tableData, maxCount) {
+async function exportGraphAndTableToPDF(tableData) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -111,47 +110,47 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
   const imageData = fs.readFileSync("chart.png", "base64");
   const imageSrc = `data:image/png;base64,${imageData}`;
 
-  // Generate the table HTML content with heatmap styling
+  // Generate the table HTML content with color scale
   let tableHtml = `
-      <h2>Heatmap Table</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Department</th>
-            <th>Y</th>
-            <th>S</th>
-            <th>M</th>
-            <th>L</th>
-            <th>XL</th>
-            <th>2XL</th>
-            <th>3XL</th>
-            <th>Sum</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+    <h2>Heatmap Table</h2>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Y</th>
+          <th>S</th>
+          <th>M</th>
+          <th>L</th>
+          <th>XL</th>
+          <th>2XL</th>
+          <th>3XL</th>
+          <th>Sum</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-  // Populate the table with data and apply heatmap style
+  // Populate the table with data and apply color scale
   tableData.forEach((row) => {
     tableHtml += `
         <tr>
           <td>${row.Department}</td>
-          <td class="heatmap-y">${row.Y}</td>
-          <td class="heatmap-s">${row.S}</td>
-          <td class="heatmap-m">${row.M}</td>
-          <td class="heatmap-l">${row.L}</td>
-          <td class="heatmap-xl">${row.XL}</td>
-          <td class="heatmap-2xl">${row["2XL"]}</td>
-          <td class="heatmap-3xl">${row["3XL"]}</td>
+          <td style="color: ${getColor(row.Y)}">${row.Y}</td>
+          <td style="color: ${getColor(row.S)}">${row.S}</td>
+          <td style="color: ${getColor(row.M)}">${row.M}</td>
+          <td style="color: ${getColor(row.L)}">${row.L}</td>
+          <td style="color: ${getColor(row.XL)}">${row.XL}</td>
+          <td style="color: ${getColor(row["2XL"])}">${row["2XL"]}</td>
+          <td style="color: ${getColor(row["3XL"])}">${row["3XL"]}</td>
           <td>${row.Sum}</td>
         </tr>
       `;
   });
 
   tableHtml += `
-        </tbody>
-      </table>
-    `;
+      </tbody>
+    </table>
+  `;
 
   // Set the HTML content for the PDF
   const htmlContent = `
@@ -198,35 +197,6 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
           th {
             background-color: #f2f2f2;
           }
-  
-          /* Define heatmap colors based on CSS classes */
-          .heatmap-y {
-            background-color: rgba(255, 0, 0, 0.5); /* Red */
-          }
-  
-          .heatmap-s {
-            background-color: rgba(0, 255, 0, 0.5); /* Green */
-          }
-  
-          .heatmap-m {
-            background-color: rgba(0, 0, 255, 0.5); /* Blue */
-          }
-  
-          .heatmap-l {
-            background-color: rgba(255, 255, 0, 0.5); /* Yellow */
-          }
-  
-          .heatmap-xl {
-            background-color: rgba(255, 0, 255, 0.5); /* Magenta */
-          }
-  
-          .heatmap-2xl {
-            background-color: rgba(0, 255, 255, 0.5); /* Cyan */
-          }
-  
-          .heatmap-3xl {
-            background-color: rgba(128, 128, 128, 0.5); /* Gray */
-          }
         </style>
       </head>
       <body>
@@ -243,7 +213,7 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
         ${tableHtml}
       </body>
       </html>
-    `;
+      `;
 
   // Set the HTML content of the page
   await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
@@ -255,6 +225,27 @@ async function exportGraphAndTableToPDF(tableData, maxCount) {
   await browser.close();
 
   console.log("PDF generated successfully at: report.pdf");
+}
+
+// Function to get color based on value for color scale
+function getColor(value) {
+  if (value >= 0 && value <= 100) {
+    return "white";
+  } else if (value > 100 && value <= 300) {
+    return "lightyellow";
+  } else if (value > 300 && value <= 500) {
+    return "yellow";
+  } else if (value > 500 && value <= 800) {
+    return "lightorange";
+  } else if (value > 800 && value <= 1100) {
+    return "orange";
+  } else if (value > 1100 && value <= 1300) {
+    return "lightred";
+  } else if (value > 1300 && value <= 1500) {
+    return "red";
+  } else {
+    return "darkred";
+  }
 }
 
 function getMaxCount(queryData) {

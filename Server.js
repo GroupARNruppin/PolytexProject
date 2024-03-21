@@ -19,8 +19,7 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
     await createGraph(chartData);
     const tableData = await generateTableData(resultQuery);
     const maxCount = await getMaxCount(resultQuery);
-    console.log(maxCount);
-    await exportGraphAndTableToPDF(tableData, maxCount);
+    await exportGraphAndTableToPDF(tableData);
     res.json(resultQuery);
   } catch (error) {
     console.error(error);
