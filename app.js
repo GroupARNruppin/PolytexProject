@@ -151,7 +151,7 @@ function createGraph(data) {
         },
         title: {
           display: true,
-          text: "Distribution Of Items & Size Across All Stations",
+          text: "", // Distribution Of Items & Size Across All Stations
         },
       },
       scales: {

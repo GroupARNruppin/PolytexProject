@@ -83,7 +83,7 @@ function createGraph(data) {
         },
         title: {
           display: true,
-          text: "Distribution Of Items & Size Across All Stations",
+          text: "", //Distribution Of Items & Size Across All Stations
         },
       },
       scales: {
@@ -175,9 +175,13 @@ async function exportGraphAndTableToPDF() {
         </span>
   
         </div>
+        <div> 
+        <h3>Distribution Of Items & Size Across All Stations</h3>
         <div style="height: 25%;"><img src="${imageSrc}" alt="Graph Image" /><div>
-  
-        <div style="height: 25%;"><img src="${imageTableSrc}"alt="Table Image" /></div>
+        </div>
+          <div>
+          <div style="height: 25%;"><img src="${imageTableSrc}"alt="Table Image" /></div>
+          </div>
       </body>
       </html>
       `;
