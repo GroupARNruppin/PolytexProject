@@ -33,3 +33,20 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+const fs = require("fs");
+
+async function menuallyStart(){
+  const configPath = "./data.json";
+  const resultQuery = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+  const chartData = await prepareChartData(resultQuery);
+  await createGraph(chartData);
+  const tableData = await generateTableData(resultQuery);
+  //const maxCount = await getMaxCount(resultQuery);
+  await generateTableHTML(tableData);
+  await exportGraphAndTableToPDF();
+}
+
+menuallyStart()

@@ -157,16 +157,24 @@ async function exportGraphAndTableToPDF() {
           th {
             background-color: #f2f2f2;
           }
+
+   
+          
         </style>
       </head>
       <body>
-        <h1>Out Of Stock Analysis - Hospital Name - Date</h1>
-        
+      <div>
+      <h1>Out Of Stock Analysis - Hospital Name - Date</h1>
+      </div>  
+        <div>
+        <h3>General</h3>
         <span>
           As the vendor for the automatic garment dispensing units at Hospital Name, Polytex has unique insight into the inventory management practices and supply chain operations of the hospital. <br>
-          In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed. Through this report, Polytex hopes to help Hospital Name optimize their operations and improve patient outcomes.
+          In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed. <br>
+          Through this report, Polytex hopes to help Hospital Name optimize their operations and improve patient outcomes.
         </span>
   
+        </div>
         <div style="height: 25%;"><img src="${imageSrc}" alt="Graph Image" /><div>
   
         <div style="height: 25%;"><img src="${imageTableSrc}"alt="Table Image" /></div>
@@ -211,31 +219,30 @@ async function generateTableHTML(tableData) {
   tableData.forEach((row) => {
     tableHtml += `
               <tr>
-                <td style="padding: 8px; text-align: left;">${
-                  row.Department
-                }</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row.Y
-                )}">${row.Y}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row.S
-                )}">${row.S}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row.M
-                )}">${row.M}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row.L
-                )}">${row.L}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row.XL
-                )}">${row.XL}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row["2XL"]
-                )}">${row["2XL"]}</td>
-                <td style="padding: 8px; text-align: center; color: ${getColor(
-                  row["3XL"]
-                )}">${row["3XL"]}</td>
-                <td style="padding: 8px; text-align: center;">${row.Sum}</td>
+                <td style="padding: 8px; text-align: left;">${row.Department
+      }</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row.Y
+      )}">${row.Y}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row.S
+      )}">${row.S}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row.M
+      )}">${row.M}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row.L
+      )}">${row.L}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row.XL
+      )}">${row.XL}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row["2XL"]
+      )}">${row["2XL"]}</td>
+                <td style="padding: 8px; text-align: center; background-color: ${getColor(
+        row["3XL"]
+      )}">${row["3XL"]}</td>
+                <td style="padding: 8px; text-align: center; background-color : ${getColor(row.sum)}">${row.Sum}</td>
               </tr>
             `;
   });
@@ -262,24 +269,57 @@ async function generateTableHTML(tableData) {
 
 // Function to get color based on value for color scale
 function getColor(value) {
-  if (value >= 0 && value <= 100) {
-    return "yellow";
-  } else if (value > 100 && value <= 300) {
-    return "gray";
-  } else if (value > 300 && value <= 500) {
-    return "darkyellow";
-  } else if (value > 500 && value <= 800) {
-    return "lightorange";
-  } else if (value > 800 && value <= 1100) {
-    return "orange";
-  } else if (value > 1100 && value <= 1300) {
-    return "lightred";
-  } else if (value > 1300 && value <= 1500) {
-    return "red";
-  } else {
-    return "darkred";
+  // Helper function to interpolate between two colors
+  function interpolateColor(color1, color2, factor) {
+    const hexToRgb = (hex) => {
+      const bigint = parseInt(hex.slice(1), 16);
+      return [bigint >> 16, (bigint >> 8) & 255, bigint & 255];
+    };
+
+    const rgbToHex = (r, g, b) => {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    };
+
+    const [r1, g1, b1] = hexToRgb(color1);
+    const [r2, g2, b2] = hexToRgb(color2);
+
+    const r = Math.round(r1 + factor * (r2 - r1));
+    const g = Math.round(g1 + factor * (g2 - g1));
+    const b = Math.round(b1 + factor * (b2 - b1));
+
+    return rgbToHex(r, g, b);
   }
+
+  // Define color thresholds and corresponding colors
+  const colorThresholds = [
+    { threshold: 0, color: "#FFFFCC" },    // Light yellow
+    { threshold: 2500, color: "#E8E8E8" }, // Light gray
+    { threshold: 5000, color: "#FFFF99" }, // Light yellow
+    { threshold: 7500, color: "#FFCC99" }, // Light orange
+    { threshold: 10000, color: "#FFCC66" } // Light orange
+  ];
+
+  // Find the two closest thresholds
+  let lowerThreshold = { threshold: -Infinity, color: "white" };
+  let upperThreshold = { threshold: Infinity, color: "white" };
+
+  for (let i = 0; i < colorThresholds.length; i++) {
+    if (colorThresholds[i].threshold <= value && colorThresholds[i].threshold > lowerThreshold.threshold) {
+      lowerThreshold = colorThresholds[i];
+    }
+    if (colorThresholds[i].threshold >= value && colorThresholds[i].threshold < upperThreshold.threshold) {
+      upperThreshold = colorThresholds[i];
+    }
+  }
+
+  // Calculate the interpolation factor
+  const factor = (value - lowerThreshold.threshold) / (upperThreshold.threshold - lowerThreshold.threshold);
+
+  // Interpolate the color
+  return interpolateColor(lowerThreshold.color, upperThreshold.color, factor);
 }
+
+
 
 function getMaxCount(queryData) {
   let maxCount = 0; // Initialize maxCount variable

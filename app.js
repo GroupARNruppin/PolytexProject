@@ -210,18 +210,42 @@ async function exportGraphToPDF() {
         max-width: 100%;
         height: auto;
       }
-    </style>
+
+      .header-container {
+        text-align: center;
+        font-weight: 15px;
+        display: flex;
+      }
+      
+      .general-header-container {
+        text-align: center;
+        display: flex;
+      }
+      
+      .graph-container {
+        text-align: center;
+        display: flex;
+      }
+
+      </style>
   </head>
   <body>
-    <h1>Out Of Stock Analysis - Hospital Name - Date</h1>
-    
-    <span>
-      As the vendor for the automatic garment dispensing units at Hospital Name, Polytex has unique insight into the inventory management practices and supply chain operations of the hospital. <br>
-      In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed. Through this report, Polytex hopes to help Hospital Name optimize their operations and improve patient outcomes.
-    </span>
+      <div class="header-container">
+         <h1>Out Of Stock Analysis - Hospital Name - Date</h1>
+      </div>
+      <div class="general-header-container">
+      <h2>General</h2>
+      <span>
+        As the vendor for the automatic garment dispensing units at Hospital Name, Polytex has unique insight into the inventory management practices and supply chain operations of the hospital. <br>
+        <br> In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed. <br>
+        <br> Through this report, Polytex hopes to help Hospital Name optimize their operations and improve patient outcomes.
+      </span>  
+      </div>
   
-    <h2>Graph</h2>
-    <img src="${imageSrc}" alt="Graph Image" />
+      <div class="graph-container">
+      <h2>Graph</h2>
+      <img src="${imageSrc}" alt="Graph Image" />
+      </div>
   </body>
   </html>
     `;
