@@ -29,11 +29,12 @@ function prepareChartData(data) {
   chartData.labels.forEach((shirtName, index) => {
     const shirtData = groupedData[shirtName];
 
-    const sizes = Array.from(new Set(shirtData.map((item) => item.Item_Size)));
+    // const sizes = Array.from(new Set(shirtData.map((item) => item.Item_Size)));
+    const sizes = Array.from(new Set(data.map(item => item.Item_Size.toUpperCase())));
 
     sizes.forEach((size, sizeIndex) => {
       // Filter data for the current size
-      const sizeData = shirtData.filter((item) => item.Item_Size === size);
+      const sizeData = shirtData.filter((item) => item.Item_Size.toUpperCase() === size);
       // Map the appearances for the current size
       const appearances = sizeData.map((item) => item.Appearance_Count);
 
@@ -42,8 +43,8 @@ function prepareChartData(data) {
           label: size, // Y-axis
           data: [],
           backgroundColor: getRandomColor(),
-          width: 20,
-          borderWidth: 1,
+          width: "60px",
+          borderWidth: "1px",
         };
       }
 
@@ -54,11 +55,19 @@ function prepareChartData(data) {
   return chartData;
 }
 
+const usedColors = []; // Array to store used colors
+
 // Function to generate a random color
 function getRandomColor(alpha = 1) {
   const randomColor = () => Math.floor(Math.random() * 256);
-  return `rgba(${randomColor()}, ${randomColor()}, ${randomColor()}, ${alpha})`;
+  let color;
+  do {
+    color = `rgba(${randomColor()}, ${randomColor()}, ${randomColor()}, ${alpha})`;
+  } while (usedColors.includes(color)); // Check if color already exists
+  usedColors.push(color); // Add the new color to the list of used colors
+  return color;
 }
+
 
 // Function to create a Chart.js graph
 function createGraph(data) {
@@ -198,7 +207,7 @@ async function exportGraphAndTableToPDF() {
   console.log("PDF generated successfully at: report.pdf");
 }
 
-// Function to generate the table HTML content with color scale
+// Function to generate table HTML content with dynamic size columns
 async function generateTableHTML(tableData) {
   let tableHtml = `
           <h2 style="text-align: center;">Distribution Of Sizes Per Dispense Unit</h2>
@@ -206,49 +215,27 @@ async function generateTableHTML(tableData) {
             <thead style="background-color: #f2f2f2;">
               <tr>
                 <th style="padding: 8px; text-align: left;">Department</th>
-                <th style="padding: 8px; text-align: center;">Y</th>
-                <th style="padding: 8px; text-align: center;">S</th>
-                <th style="padding: 8px; text-align: center;">M</th>
-                <th style="padding: 8px; text-align: center;">L</th>
-                <th style="padding: 8px; text-align: center;">XL</th>
-                <th style="padding: 8px; text-align: center;">2XL</th>
-                <th style="padding: 8px; text-align: center;">3XL</th>
-                <th style="padding: 8px; text-align: center;">Sum</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
+  `;
 
-  // Populate the table with data and apply color scale
+  // Dynamically create size columns
+  const sizes = Object.keys(tableData[0]).filter(key => key !== 'Department'); // Exclude 'Department' key
+  sizes.forEach(size => {
+    tableHtml += `<th style="padding: 8px; text-align: center;">${size}</th>`;
+  });
+
+
+  // Populate the table with data
   tableData.forEach((row) => {
     tableHtml += `
               <tr>
-                <td style="padding: 8px; text-align: left;">${row.Department
-      }</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row.Y
-      )}">${row.Y}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row.S
-      )}">${row.S}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row.M
-      )}">${row.M}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row.L
-      )}">${row.L}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row.XL
-      )}">${row.XL}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row["2XL"]
-      )}">${row["2XL"]}</td>
-                <td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row["3XL"]
-      )}">${row["3XL"]}</td>
-                <td style="padding: 8px; text-align: center; background-color : ${getColor(row.sum)}">${row.Sum}</td>
-              </tr>
-            `;
+                <td style="padding: 8px; text-align: left;">${row.Department}</td>
+    `;
+
+    // Populate size columns dynamically
+    sizes.forEach(size => {
+      tableHtml += `<td style="padding: 8px; text-align: center; background-color : ${getColor(row[size])}">${row[size]}</td>`;
+    });
+
   });
 
   tableHtml += `
@@ -351,9 +338,16 @@ function getMaxCount(queryData) {
   return maxCount;
 }
 
-// Function to generate table data from database data
+// Function to generate table data from database data with dynamic size columns
 function generateTableData(queryData) {
   const tableData = [];
+
+  // Extract unique sizes from the data
+  const sizesSet = new Set();
+  queryData.forEach(item => {
+    sizesSet.add(item.Item_Size.toUpperCase()); // Convert size to uppercase for consistency
+  });
+  const sizes = Array.from(sizesSet);
 
   // Group data by department and size
   const groupedData = queryData.reduce((acc, item) => {
@@ -377,17 +371,8 @@ function generateTableData(queryData) {
   for (const department in groupedData) {
     const row = {
       Department: department,
-      Y: groupedData[department]["Y"] || 0,
-      S: groupedData[department]["S"] || 0,
-      M: groupedData[department]["M"] || 0,
-      L: groupedData[department]["L"] || 0,
-      XL: groupedData[department]["XL"] || 0,
-      "2XL": groupedData[department]["2XL"] || 0,
-      "3XL": groupedData[department]["3XL"] || 0,
-      Sum: Object.values(groupedData[department]).reduce(
-        (sum, value) => sum + value,
-        0
-      ),
+      ...groupedData[department], // Spread size counts dynamically
+      Sum: Object.values(groupedData[department]).reduce((sum, value) => sum + value, 0),
     };
 
     tableData.push(row);
@@ -396,13 +381,10 @@ function generateTableData(queryData) {
   // Calculate totals
   const totals = {
     Department: "Grand Total",
-    Y: tableData.reduce((sum, row) => sum + row.Y, 0),
-    S: tableData.reduce((sum, row) => sum + row.S, 0),
-    M: tableData.reduce((sum, row) => sum + row.M, 0),
-    L: tableData.reduce((sum, row) => sum + row.L, 0),
-    XL: tableData.reduce((sum, row) => sum + row.XL, 0),
-    "2XL": tableData.reduce((sum, row) => sum + row["2XL"], 0),
-    "3XL": tableData.reduce((sum, row) => sum + row["3XL"], 0),
+    ...sizes.reduce((acc, size) => {
+      acc[size] = tableData.reduce((sum, row) => sum + row[size], 0);
+      return acc;
+    }, {}), // Calculate totals dynamically
     Sum: tableData.reduce((sum, row) => sum + row.Sum, 0),
   };
 
@@ -410,6 +392,7 @@ function generateTableData(queryData) {
 
   return tableData;
 }
+
 
 module.exports = {
   generateTableHTML,
