@@ -1,13 +1,13 @@
 const express = require("express");
-const { startServer } = require("./DataBase");
+const { startServer, getMostFrequentItem } = require("./DataBase");
 const {
   generateTableHTML,
-  getMaxCount,
   generateTableData,
   createGraph,
   exportGraphAndTableToPDF,
   prepareChartData,
 } = require("./PdfCreation");
+const fs = require("fs");
 
 const app = express();
 const PORT = 3000;
@@ -19,9 +19,10 @@ app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
     const chartData = await prepareChartData(resultQuery);
     await createGraph(chartData);
     const tableData = await generateTableData(resultQuery);
-    //const maxCount = await getMaxCount(resultQuery);
+
+    const mostFrequentItem = await getMostFrequentItem();
     await generateTableHTML(tableData);
-    await exportGraphAndTableToPDF();
+    await exportGraphAndTableToPDF(tableData, mostFrequentItem);
     res.json(resultQuery);
   } catch (error) {
     console.error(error);
@@ -34,19 +35,33 @@ app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
 
-
-const fs = require("fs");
-
-async function menuallyStart(){
+async function menuallyStart() {
   const configPath = "./data.json";
   const resultQuery = JSON.parse(fs.readFileSync(configPath, "utf-8"));
 
   const chartData = await prepareChartData(resultQuery);
   await createGraph(chartData);
   const tableData = await generateTableData(resultQuery);
-  //const maxCount = await getMaxCount(resultQuery);
+
+  // Calculate the most frequent item manually
+  const mostFrequentItemMap = resultQuery.reduce((acc, item) => {
+    if (!acc[item.Item_name]) {
+      acc[item.Item_name] = 0;
+    }
+    acc[item.Item_name] += item.Appearance_Count;
+    return acc;
+  }, {});
+
+  const mostFrequentItemName = Object.keys(mostFrequentItemMap).reduce((a, b) =>
+    mostFrequentItemMap[a] > mostFrequentItemMap[b] ? a : b
+  );
+  const mostFrequentItem = {
+    Item_name: mostFrequentItemName,
+    Appearance_Count: mostFrequentItemMap[mostFrequentItemName],
+  };
+
   await generateTableHTML(tableData);
-  await exportGraphAndTableToPDF();
+  await exportGraphAndTableToPDF(tableData, mostFrequentItem);
 }
 
-menuallyStart()
+menuallyStart();

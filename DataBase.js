@@ -36,4 +36,25 @@ async function startServer(params) {
   return result.recordset;
 }
 
-module.exports = { startServer };
+async function getMostFrequentItem() {
+  await sql.connect(config);
+  const result = await sql.query`
+      SELECT TOP 1
+          IT.FullName AS Item_name,
+          COUNT(*) AS Appearance_Count
+      FROM
+          AlertsLog AL
+      JOIN
+          ItemSubTypes IST ON IST.Id = AL.ItemSubTypeId
+      JOIN
+          ItemTypes IT ON IT.Id = IST.ItemTypeId
+      GROUP BY
+          IT.FullName
+      ORDER BY
+          Appearance_Count DESC
+    `;
+  await sql.close();
+  return result.recordset[0];
+}
+
+module.exports = { startServer, getMostFrequentItem };
