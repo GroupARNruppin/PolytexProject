@@ -131,8 +131,8 @@ function getRandomColor(alpha = 1) {
 // Function to create a Chart.js graph
 function createGraph(data) {
   const canvasRenderService = new ChartJSNodeCanvas({
-    width: 800,
-    height: 600,
+    width: 800, //800
+    height: 600, //600
   });
   const configuration = {
     type: "bar",
