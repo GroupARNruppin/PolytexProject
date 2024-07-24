@@ -97,7 +97,11 @@ function createGraph(data) {
         },
         title: {
           display: true,
-          text: "", // Distribution Of Items & Size Across All Stations
+          text: "Distribution Of Items & Size Across All Stations",
+          font: {
+            size: 24,
+            weight: "bold",
+          },
         },
       },
       scales: {
@@ -105,13 +109,8 @@ function createGraph(data) {
           beginAtZero: true,
         },
         y: {
-          barPercentage: 50,
-          categoryPercentage: 50,
-        },
-      },
-      plugins: {
-        legend: {
-          position: 'bottom', 
+          barPercentage: 0.5,
+          categoryPercentage: 0.5,
         },
       },
     },
@@ -121,7 +120,11 @@ function createGraph(data) {
   console.log("Chart created and saved as chart.png");
 }
 
-async function exportGraphAndTableToPDF(tableData, mostFrequentItem) {
+async function exportGraphAndTableToPDF(
+  tableData,
+  mostFrequentItem,
+  hospitalName
+) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -157,6 +160,9 @@ async function exportGraphAndTableToPDF(tableData, mostFrequentItem) {
   
           h1 {
             color: #333;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
           }
   
           span {
@@ -167,6 +173,8 @@ async function exportGraphAndTableToPDF(tableData, mostFrequentItem) {
   
           h2 {
             color: #333;
+            font-size: 22px;
+            font-weight: bold;
           }
   
           img {
@@ -182,26 +190,27 @@ async function exportGraphAndTableToPDF(tableData, mostFrequentItem) {
           th, td {
             padding: 8px;
             text-align: center;
+            font-size: 14px;
           }
   
           th {
             background-color: #f2f2f2;
+            font-weight: bold;
           }
-   
           
         </style>
       </head>
       <body>
       <div>
-      <h1>Out Of Stock Analysis - <strong>Hospital Name</strong> - ${new Date().getFullYear()}</h1>
+      <h1>Out Of Stock Analysis - <strong>${hospitalName}</strong> - ${new Date().getFullYear()}</h1>
       </div>  
         <div>
           <h3>General</h3>
           <span>
-            As the vendor for the automatic garment dispensing units at <strong>Hospital Name</strong>, Polytex has unique insight into the inventory management practices and supply chain operations of the hospital. <br>
+            As the vendor for the automatic garment dispensing units at <strong>${hospitalName}</strong>, Polytex has unique insight into the inventory management practices and supply chain operations of the hospital. <br>
             In this <strong>"out of stock"</strong> analysis, Polytex will leverage this expertise to provide a comprehensive overview of the factors that contributed to the shortages experienced by the hospital in Date. This analysis will draw on data collected from the automatic garments dispensing units to identify areas of inefficiency or mismanagement that may have contributed to the shortages. Additionally, Polytex will provide recommendations for how the hospital can improve its inventory management practices and supply chain operations to ensure that critical equipment and supplies are always available when they are needed.
             <br> <br>
-            Through this report, Polytex hopes to help <strong>Hospital Name</strong> optimize their operations and improve patient outcomes.
+            Through this report, Polytex hopes to help <strong>${hospitalName}</strong> optimize their operations and improve patient outcomes.
           </span>  
         </div>  
         <br> <br>
@@ -217,7 +226,7 @@ async function exportGraphAndTableToPDF(tableData, mostFrequentItem) {
         <br> <br> <br> <br> <br> <br> <br>
         ${suggestionsHtml}
         <div>
-          This report by Polytex provides <strong>data-driven insights</strong> into inventory management and supply chain optimization at <strong>Hospital name</strong>.
+          This report by Polytex provides <strong>data-driven insights</strong> into inventory management and supply chain optimization at <strong>${hospitalName}</strong>.
           Based on the data, the hospital can consider adjusting inventory levels, optimizing supply chain operations, improving forecasting accuracy, and implementing automated inventory management solutions.
           Follow-through on these recommendations can help improve personal outcomes and operational efficiency.
         </div>

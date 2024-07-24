@@ -16,13 +16,17 @@ const PORT = 3000;
 app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId", async (req, res) => {
   try {
     const resultQuery = await startServer(req.params);
+    const hospitalName =
+      resultQuery.length > 0 && resultQuery[0].Hospital_Name
+        ? resultQuery[0].Hospital_Name
+        : "Unknown";
     const chartData = await prepareChartData(resultQuery);
     await createGraph(chartData);
     const tableData = await generateTableData(resultQuery);
 
     const mostFrequentItem = await getMostFrequentItem();
     await generateTableHTML(tableData);
-    await exportGraphAndTableToPDF(tableData, mostFrequentItem);
+    await exportGraphAndTableToPDF(tableData, mostFrequentItem, hospitalName);
     res.json(resultQuery);
   } catch (error) {
     console.error(error);
@@ -60,8 +64,12 @@ async function menuallyStart() {
     Appearance_Count: mostFrequentItemMap[mostFrequentItemName],
   };
 
+  const hospitalName =
+    resultQuery.length > 0 && resultQuery[0].Hospital_Name
+      ? resultQuery[0].Hospital_Name
+      : "Unknown";
   await generateTableHTML(tableData);
-  await exportGraphAndTableToPDF(tableData, mostFrequentItem);
+  await exportGraphAndTableToPDF(tableData, mostFrequentItem, hospitalName);
 }
 
 menuallyStart();
