@@ -97,7 +97,11 @@ function createGraph(data) {
         },
         title: {
           display: true,
-          text: "", // Distribution Of Items & Size Across All Stations
+          text: "Distribution Of Items & Size Across All Stations",
+          font: {
+            size: 24,
+            weight: "bold",
+          },
         },
       },
       scales: {
@@ -105,13 +109,8 @@ function createGraph(data) {
           beginAtZero: true,
         },
         y: {
-          barPercentage: 50,
-          categoryPercentage: 50,
-        },
-      },
-      plugins: {
-        legend: {
-          position: "bottom",
+          barPercentage: 0.5,
+          categoryPercentage: 0.5,
         },
       },
     },
@@ -161,6 +160,9 @@ async function exportGraphAndTableToPDF(
   
           h1 {
             color: #333;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
           }
   
           span {
@@ -171,6 +173,8 @@ async function exportGraphAndTableToPDF(
   
           h2 {
             color: #333;
+            font-size: 22px;
+            font-weight: bold;
           }
   
           img {
@@ -186,12 +190,13 @@ async function exportGraphAndTableToPDF(
           th, td {
             padding: 8px;
             text-align: center;
+            font-size: 14px;
           }
   
           th {
             background-color: #f2f2f2;
+            font-weight: bold;
           }
-   
           
         </style>
       </head>
