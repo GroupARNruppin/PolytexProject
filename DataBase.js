@@ -15,30 +15,32 @@ async function startServer(params) {
 
   // ביצוע השאילתא למסד הנתונים הראשי
   const mainDataResult = await sql.query`
-    SELECT
-      AL.SiteId AS Hospital_Id,
-      ST.Name AS Station_Name,
-      IT.FullName AS Item_name,
-      MAX(IST.FullName) AS Item_Size,
-      COUNT(*) AS Appearance_Count
-    FROM
-      AlertsLog AL
-    JOIN
-      Stations ST ON ST.Id = AL.SiteId
-    JOIN
-      ItemSubTypes IST ON IST.Id = AL.ItemSubTypeId
-    JOIN
-      ItemTypes IT ON IT.Id = IST.ItemTypeId
-    WHERE
-      AL.AlertId = ${params.AlertId}
-      AND AL.ItemSubTypeId IS NOT NULL
-      AND AL.AccountId = ${params.AccountID}
-      AND AL.SiteId = ${params.SiteId}
-    GROUP BY
-      AL.SiteId,
-      ST.Name,
-      IT.FullName,
-      IST.FullName
+  SELECT
+  AL.SiteId AS Hospital_Id,
+  ST.Name AS Station_Name,
+  IT.FullName AS Item_name,
+  IST.FullName AS Item_Size,
+  COUNT(AL.Id) AS Appearance_Count
+FROM
+  AlertsLog AL
+JOIN
+  Stations ST ON ST.Id = AL.StationId
+JOIN
+  ItemSubTypes IST ON IST.Id = AL.ItemSubTypeId
+JOIN
+  ItemTypes IT ON IT.Id = IST.ItemTypeId
+WHERE
+  AL.AlertId = ${params.AlertId}
+  AND AL.ItemSubTypeId IS NOT NULL
+  AND AL.StationId IS NOT NULL
+  AND AL.AccountId = ${params.AccountID}
+  AND AL.SiteId = ${params.SiteId}
+  AND AL.UpdatedDate BETWEEN CONVERT(datetime, ${params.startDate}, 120) AND CONVERT(datetime, ${params.endDate}, 120)
+GROUP BY
+  AL.SiteId,
+  ST.Name,
+  IT.FullName,
+  IST.FullName
   `;
   const mainData = mainDataResult.recordset;
 
@@ -69,7 +71,7 @@ async function startServer(params) {
 async function getMostFrequentItem() {
   await sql.connect(config);
   const result = await sql.query`
-      SELECT TOP 1
+      SELECT TOP 3
           IT.FullName AS Item_name,
           COUNT(*) AS Appearance_Count
       FROM

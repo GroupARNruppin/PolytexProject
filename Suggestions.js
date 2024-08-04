@@ -25,16 +25,16 @@ function generateSuggestions(tableData, mostFrequentItem) {
   const countItemSizes = () => {
     // Filter the keys to exclude 'Sum' and 'Department'
     const keys = Object.keys(tableData[0]).filter(
-      (key) => key !== 'Sum' && key !== 'Department'
+      (key) => key !== "Sum" && key !== "Department"
     );
     // Return the number of keys
     return keys.length;
-  }
-  
+  };
+
   // Calculate the average appearance count for all items
   const getAverageAppearanceCount = () => {
     const totalAppearanceCount = tableData[0].Sum;
-    const countSizes = countItemSizes()
+    const countSizes = countItemSizes();
     return totalAppearanceCount / countSizes;
   };
 
@@ -68,11 +68,19 @@ function generateSuggestions(tableData, mostFrequentItem) {
   const averageAppearanceCount = getAverageAppearanceCount();
   // console.info(averageAppearanceCount)
   // Calculate increase based on the ratio of the item's appearance count to the average
-  const increaseRatio = mostFrequentItem.Appearance_Count / averageAppearanceCount;
+  const increaseRatio =
+    mostFrequentItem.Appearance_Count / averageAppearanceCount;
   const increasePercentage = Math.min(increaseRatio * 10); // Cap the increase at 20%
   suggestions.push(
-    `The most frequently out-of-stock item is <strong>${mostFrequentItem.Item_name}</strong>, which has been out of stock <strong>${mostFrequentItem.Appearance_Count}</strong> times.
-     We recommend increasing the stock level for this item by at least <strong>${Math.round(increasePercentage, 4)}%</strong> to prevent future shortages and ensure continuous availability.
+    `The most frequently out-of-stock item is <strong>${
+      mostFrequentItem.Item_name
+    }</strong>, which has been out of stock <strong>${
+      mostFrequentItem.Appearance_Count
+    }</strong> times.
+     We recommend increasing the stock level for this item by at least <strong>${Math.round(
+       increasePercentage,
+       4
+     )}%</strong> to prevent future shortages and ensure continuous availability.
     This will help in meeting the demand consistently and avoiding disruptions.`
   );
 
