@@ -31,10 +31,10 @@ function prepareChartData(data) {
   chartData.labels.forEach((shirtName, index) => {
     const shirtData = groupedData[shirtName];
 
-    // const sizes = Array.from(new Set(shirtData.map((item) => item.Item_Size)));
+    // Extract unique sizes, ensuring consistent capitalization
     const sizes = Array.from(
       new Set(data.map((item) => item.Item_Size.toUpperCase()))
-    );
+    ).sort();
 
     sizes.forEach((size, sizeIndex) => {
       // Filter data for the current size
@@ -139,7 +139,7 @@ async function exportGraphAndTableToPDF(
 
   // Create suggestions HTML
   const suggestionsHtml = `
-  <h2>Analytics Results & Suggestions</h2>
+  <h2 style="margin-top: 30px;">Analytics Results & Suggestions</h2>
   <ol>
     ${suggestions.map((suggestion) => `<li>${suggestion}</li>`).join("")}
   </ol>
@@ -175,6 +175,7 @@ async function exportGraphAndTableToPDF(
             color: #333;
             font-size: 22px;
             font-weight: bold;
+            margin-bottom: 20px;
           }
   
           img {
@@ -185,6 +186,7 @@ async function exportGraphAndTableToPDF(
           table {
             border-collapse: collapse;
             width: 100%;
+            margin-bottom: 50px; /* Ensure there is space after the table */
           }
   
           th, td {
@@ -196,6 +198,17 @@ async function exportGraphAndTableToPDF(
           th {
             background-color: #f2f2f2;
             font-weight: bold;
+          }
+
+          ol {
+            margin-top: 20px; /* Margin above the suggestions list */
+          }
+          
+          /* Page break */
+          @media print {
+            .page-break {
+              page-break-before: always;
+            }
           }
           
         </style>
@@ -216,12 +229,12 @@ async function exportGraphAndTableToPDF(
         <br> <br>
         <div> 
           <h3><u>Distribution Of Items & Size Across All Stations</u></h3>
-          <div style="height: 25%;"><img src="${imageSrc}" alt="Graph Image" /><div>
+          <div style="height: 25%;"><img src="${imageSrc}" alt="Graph Image" /></div>
           <br> <br> <br> <br> <br> <br> <br>
           <br> <br> <br> <br> <br> <br> <br>
         </div>
           <div>
-            <div style="height: 25%;"><img src="${imageTableSrc}"alt="Table Image" /></div>
+            <div style="height: 25%;"><img src="${imageTableSrc}" alt="Table Image" /></div>
           </div>
         <br> <br> <br> <br> <br> <br> <br>
         ${suggestionsHtml}
@@ -254,14 +267,60 @@ async function generateTableHTML(tableData) {
     <table border="1" style="width: 100%; border-collapse: collapse;">
       <thead style="background-color: #f2f2f2;">
         <tr>
-          <th style="padding: 8px; text-align: left;">Department</th>
+          <th style="padding: 8px; text-align: left;">Station</th>
   `;
 
+  // Extract unique sizes from the table data, ensuring consistent capitalization
+  const sizes = Array.from(
+    new Set(
+      tableData.flatMap((row) =>
+        Object.keys(row).filter((key) => key !== "Department" && key !== "Sum")
+      )
+    )
+  ).sort((a, b) => {
+    // Sort sizes based on a more comprehensive logic
+    const sizeOrder = {
+      XS: 1,
+      S: 2,
+      M: 3,
+      L: 4,
+      XL: 5,
+      XXL: 6,
+      "3XL": 7,
+      "4XL": 8,
+      "5XL": 9,
+    };
+
+    const numRegex = /^\d+$/;
+    const isNumA = numRegex.test(a);
+    const isNumB = numRegex.test(b);
+
+    if (isNumA && isNumB) {
+      return parseInt(a) - parseInt(b);
+    }
+
+    if (isNumA) return 1;
+    if (isNumB) return -1;
+
+    return (sizeOrder[a] || 10) - (sizeOrder[b] || 10);
+  });
+
   // Dynamically create size columns
-  const sizes = Object.keys(tableData[0]).filter((key) => key !== "Department"); // Exclude 'Department' key
   sizes.forEach((size) => {
     tableHtml += `<th style="padding: 8px; text-align: center;">${size}</th>`;
   });
+
+  // Add a column for the sum of each department
+  tableHtml += `<th style="padding: 8px; text-align: center;">Sum</th>`;
+
+  tableHtml += `</tr></thead><tbody>`;
+
+  // Find the maximum value in the table data, excluding "Grand Total"
+  const maxValue = Math.max(
+    ...tableData
+      .filter((row) => row.Department !== "Grand Total")
+      .flatMap((row) => sizes.map((size) => row[size] || 0))
+  );
 
   // Populate the table with data
   tableData.forEach((row) => {
@@ -272,10 +331,20 @@ async function generateTableHTML(tableData) {
 
     // Populate size columns dynamically
     sizes.forEach((size) => {
-      tableHtml += `<td style="padding: 8px; text-align: center; background-color: ${getColor(
-        row[size]
-      )}">${row[size]}</td>`;
+      // Check if the current row is "Grand Total" and apply no color if so
+      const backgroundColor =
+        row.Department === "Grand Total"
+          ? "#ffffff"
+          : getColor(row[size] || 0, maxValue);
+      tableHtml += `<td style="padding: 8px; text-align: center; background-color: ${backgroundColor}">${
+        row[size] || 0
+      }</td>`;
     });
+
+    // Add a cell for the department's sum
+    tableHtml += `<td style="padding: 8px; text-align: center; font-weight: bold;">${row.Sum}</td>`;
+
+    tableHtml += `</tr>`;
   });
 
   tableHtml += `
@@ -299,7 +368,7 @@ async function generateTableHTML(tableData) {
 }
 
 // Function to get color based on value for color scale
-function getColor(value) {
+function getColor(value, maxValue) {
   // Helper function to interpolate between two colors
   function interpolateColor(color1, color2, factor) {
     const hexToRgb = (hex) => {
@@ -321,41 +390,42 @@ function getColor(value) {
     return rgbToHex(r, g, b);
   }
 
-  // Define color thresholds and corresponding colors
-  const colorThresholds = [
-    { threshold: 0, color: "#FFFFCC" }, // Light yellow
-    { threshold: 2500, color: "#E8E8E8" }, // Light gray
-    { threshold: 5000, color: "#FFFF99" }, // Light yellow
-    { threshold: 7500, color: "#FFCC99" }, // Light orange
-    { threshold: 10000, color: "#FFCC66" }, // Light orange
+  // Define color thresholds and corresponding colors for a better gradient
+  const colors = [
+    { threshold: 0, color: "#fff7ec" }, // Cream
+    { threshold: 0.2, color: "#fee8c8" }, // Light Peach
+    { threshold: 0.4, color: "#fdbb84" }, // Light Orange
+    { threshold: 0.6, color: "#fc8d59" }, // Soft Orange
+    { threshold: 0.8, color: "#e34a33" }, // Bright Red
+    { threshold: 1, color: "#b30000" }, // Dark Red
   ];
 
-  // Find the two closest thresholds
-  let lowerThreshold = { threshold: -Infinity, color: "white" };
-  let upperThreshold = { threshold: Infinity, color: "white" };
+  // Calculate the interpolation factor
+  const factor = Math.min(value / maxValue, 1); // Ensure factor is between 0 and 1
 
-  for (let i = 0; i < colorThresholds.length; i++) {
-    if (
-      colorThresholds[i].threshold <= value &&
-      colorThresholds[i].threshold > lowerThreshold.threshold
-    ) {
-      lowerThreshold = colorThresholds[i];
-    }
-    if (
-      colorThresholds[i].threshold >= value &&
-      colorThresholds[i].threshold < upperThreshold.threshold
-    ) {
-      upperThreshold = colorThresholds[i];
+  // Find the two closest thresholds
+  let lowerThreshold = colors[0];
+  let upperThreshold = colors[colors.length - 1];
+
+  for (let i = 0; i < colors.length - 1; i++) {
+    if (factor >= colors[i].threshold && factor < colors[i + 1].threshold) {
+      lowerThreshold = colors[i];
+      upperThreshold = colors[i + 1];
+      break;
     }
   }
 
-  // Calculate the interpolation factor
-  const factor =
-    (value - lowerThreshold.threshold) /
+  // Calculate the interpolation factor for the color
+  const localFactor =
+    (factor - lowerThreshold.threshold) /
     (upperThreshold.threshold - lowerThreshold.threshold);
 
   // Interpolate the color
-  return interpolateColor(lowerThreshold.color, upperThreshold.color, factor);
+  return interpolateColor(
+    lowerThreshold.color,
+    upperThreshold.color,
+    localFactor
+  );
 }
 
 // Function to generate table data from database data with dynamic size columns
@@ -367,7 +437,7 @@ function generateTableData(queryData) {
   queryData.forEach((item) => {
     sizesSet.add(item.Item_Size.toUpperCase()); // Convert size to uppercase for consistency
   });
-  const sizes = Array.from(sizesSet);
+  const sizes = Array.from(sizesSet).sort();
 
   // Group data by department and size
   const groupedData = queryData.reduce((acc, item) => {
@@ -405,7 +475,7 @@ function generateTableData(queryData) {
   const totals = {
     Department: "Grand Total",
     ...sizes.reduce((acc, size) => {
-      acc[size] = tableData.reduce((sum, row) => sum + row[size], 0);
+      acc[size] = tableData.reduce((sum, row) => sum + (row[size] || 0), 0);
       return acc;
     }, {}), // Calculate totals dynamically
     Sum: tableData.reduce((sum, row) => sum + row.Sum, 0),

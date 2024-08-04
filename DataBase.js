@@ -15,7 +15,7 @@ async function startServer(params) {
 
   // ביצוע השאילתא למסד הנתונים הראשי
   const mainDataResult = await sql.query`
-   SELECT
+  SELECT
   AL.SiteId AS Hospital_Id,
   ST.Name AS Station_Name,
   IT.FullName AS Item_name,
@@ -35,6 +35,7 @@ WHERE
   AND AL.StationId IS NOT NULL
   AND AL.AccountId = ${params.AccountID}
   AND AL.SiteId = ${params.SiteId}
+  AND AL.UpdatedDate BETWEEN CONVERT(datetime, ${params.startDate}, 120) AND CONVERT(datetime, ${params.endDate}, 120)
 GROUP BY
   AL.SiteId,
   ST.Name,
@@ -70,7 +71,7 @@ GROUP BY
 async function getMostFrequentItem() {
   await sql.connect(config);
   const result = await sql.query`
-      SELECT TOP 1
+      SELECT TOP 3
           IT.FullName AS Item_name,
           COUNT(*) AS Appearance_Count
       FROM
