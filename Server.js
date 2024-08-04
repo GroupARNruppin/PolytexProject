@@ -13,6 +13,7 @@ const app = express();
 const PORT = 3000;
 
 // Define a route to fetch data from the database with parameters
+// For example : http://localhost:3000/getPDFSuggestions/1/322/1360/2020-11-23/2023-11-23
 app.get("/getPDFSuggestions/:AccountID/:SiteId/:AlertId/:startDate/:endDate", async (req, res) => {
   try {
     const resultQuery = await startServer(req.params);

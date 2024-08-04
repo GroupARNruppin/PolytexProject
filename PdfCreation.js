@@ -136,7 +136,6 @@ async function exportGraphAndTableToPDF(
 
   // Generate suggestions
   const suggestions = generateSuggestions(tableData, mostFrequentItem);
-
   // Create suggestions HTML
   const suggestionsHtml = `
   <h2 style="margin-top: 30px;">Analytics Results & Suggestions</h2>
